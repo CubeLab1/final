@@ -1,101 +1,134 @@
-import Image from "next/image";
+"use client";
+import { useState } from "react";
 
-export default function Home() {
+const Page = () => {
+  const [password, setPassword] = useState("");
+  const [strengthResult, setStrengthResult] = useState<any>(null);
+  const [breachResult, setBreachResult] = useState<any>(null);
+  const [hashResult, setHashResult] = useState<any>(null);
+
+  // Form State
+  const [passwordOptions, setPasswordOptions] = useState({
+    length: 12,
+    includeSymbols: true,
+    includeNumbers: true,
+    includeUppercase: true,
+  });
+
+  const [email, setEmail] = useState("");
+  const [inputForHash, setInputForHash] = useState("");
+  const [hashAlgorithm, setHashAlgorithm] = useState("sha256");
+
+  const handleGeneratePassword = async () => {
+    const params = new URLSearchParams(passwordOptions as any).toString();
+    const res = await fetch(`/api/generate-password?${params}`);
+    const data = await res.json();
+    setPassword(data.password);
+  };
+
+  const handleTestStrength = async () => {
+    const res = await fetch(`/api/strength?password=${password}`);
+    const data = await res.json();
+    setStrengthResult(data);
+  };
+
+  const handleCheckBreach = async () => {
+    const res = await fetch(`/api/breach?email=${email}`);
+    const data = await res.json();
+    setBreachResult(data);
+  };
+
+  const handleGenerateHash = async () => {
+    const res = await fetch(
+      `/api/generate-hash?input=${inputForHash}&algorithm=${hashAlgorithm}`
+    );
+    const data = await res.json();
+    setHashResult(data);
+  };
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <div className="space-y-8 p-8">
+      <section>
+        <h2 className="text-lg font-bold">Password Generator</h2>
+        <button
+          onClick={handleGeneratePassword}
+          className="bg-blue-500 text-white px-4 py-2 rounded"
+        >
+          Generate Password
+        </button>
+        {password && <p className="mt-2">Generated Password: {password}</p>}
+      </section>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+      <section>
+        <h2 className="text-lg font-bold">Password Strength Tester</h2>
+        <button
+          onClick={handleTestStrength}
+          className="bg-blue-500 text-white px-4 py-2 rounded"
         >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+          Test Strength
+        </button>
+        {strengthResult && (
+          <div className="mt-2">
+            <p>Score: {strengthResult.score}</p>
+            <p>Feedback: {strengthResult.feedback.join(", ")}</p>
+          </div>
+        )}
+      </section>
+
+      <section>
+        <h2 className="text-lg font-bold">Data Breach Checker</h2>
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="Enter your email"
+          className="border p-2 rounded"
+        />
+        <button
+          onClick={handleCheckBreach}
+          className="bg-blue-500 text-white px-4 py-2 rounded ml-2"
         >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+          Check Breach
+        </button>
+        {breachResult && (
+          <div className="mt-2">
+            <p>{breachResult.message}</p>
+          </div>
+        )}
+      </section>
+
+      <section>
+        <h2 className="text-lg font-bold">Hash Generator</h2>
+        <input
+          type="text"
+          value={inputForHash}
+          onChange={(e) => setInputForHash(e.target.value)}
+          placeholder="Enter input to hash"
+          className="border p-2 rounded"
+        />
+        <select
+          value={hashAlgorithm}
+          onChange={(e) => setHashAlgorithm(e.target.value)}
+          className="border p-2 rounded ml-2"
         >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          <option value="sha256">SHA-256</option>
+          <option value="md5">MD5</option>
+          <option value="sha1">SHA-1</option>
+        </select>
+        <button
+          onClick={handleGenerateHash}
+          className="bg-blue-500 text-white px-4 py-2 rounded ml-2"
+        >
+          Generate Hash
+        </button>
+        {hashResult && (
+          <div className="mt-2">
+            <p>Hash: {hashResult.hash}</p>
+          </div>
+        )}
+      </section>
     </div>
   );
-}
+};
+
+export default Page;
